@@ -12,7 +12,7 @@ function createWindow() {
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false
+      webSecurity: false // 我知道不安全，但是你就说能不能用)🐶
     }
   })
 
@@ -82,7 +82,7 @@ app.on('window-all-closed', () => {
   }
 })
 
-// 修改 readFilesFromDisk 函数，返回使用自定义协议的 URL
+// 修改 readFilesFromDisk 函数，可以返回使用自定义协议的 URL，但是就先这样吧，能跑就行
 async function readFilesFromDisk(_, folderPath) {
   try {
     const files = await readdir(folderPath)

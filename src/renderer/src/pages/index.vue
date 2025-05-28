@@ -246,12 +246,12 @@ const selectNewPath = async () => {
 
 const selectVideo = (date, timeGroup) => {
   selectedVideo.value = { date, ...timeGroup }
-  
+  debugger;
   // 设置当前视频路径
-  currentVideos.front = timeGroup.paths.front || ''
-  currentVideos.back = timeGroup.paths.back || ''
-  currentVideos.left = timeGroup.paths.leftback || ''
-  currentVideos.right = timeGroup.paths.rightback || ''
+  currentVideos.front = "file://" + timeGroup.paths.front || ''
+  currentVideos.back = "file://" + timeGroup.paths.back || ''
+  currentVideos.left = "file://" + timeGroup.paths.leftback || ''
+  currentVideos.right = "file://" + timeGroup.paths.rightback || ''
   
   // 重置播放时间
   nextTick(() => {
@@ -390,7 +390,7 @@ onMounted(() => {
 .collapse-enter-active,
 .collapse-leave-active {
   transition: all 0.3s ease;
-  max-height: 1000px; /* 足够大的高度以容纳内容 */
+  max-height: 9.259vh; /* 足够大的高度以容纳内容 */
   overflow: hidden;
 }
 

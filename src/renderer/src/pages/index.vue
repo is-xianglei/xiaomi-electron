@@ -27,7 +27,7 @@
           class="date-group"
         >
           <div class="date-header" @click="toggleDateGroup(date)">
-            {{ date }}
+            {{ formatDate(date) }}
             <span class="toggle-icon">{{ expandedDates[date] ? '▼' : '▶' }}</span>
           </div>
           <transition name="collapse">
@@ -39,7 +39,7 @@
                 :class="{ selected: selectedVideo?.time === timeGroup.time && selectedVideo?.date === date }"
                 @click="selectVideo(date, timeGroup)"
               >
-                <div class="video-time">{{ timeGroup.time }}</div>
+                <div class="video-time">{{ formatTimeStr(timeGroup.time) }}</div>
                 <div class="video-info">
                   <span class="duration">{{ timeGroup.duration }}分钟</span>
                   <span class="angles">{{ timeGroup.angles.length }}个视角</span>
@@ -145,6 +145,17 @@ const sortedDates = computed(() => {
 })
 
 // 方法
+const formatDate = (str) => {
+  const [datePart] = str.split('_');
+  const [year, month, day] = datePart.split('-');
+  return `${year} 年 ${month} 月 ${day} 日`;
+};
+
+const formatTimeStr = (str) => {
+  const [hour, minute, second] = str.split('-');
+  return `${hour}:${minute}:${second}`;
+};
+
 const switchTab = async (tab) => {
   currentTab.value = tab
   //await loadVideos()

@@ -1,8 +1,9 @@
 {
-  "name": "electron-app",
+  "name": "driving-video",
   "version": "1.0.0",
-  "author": "example",
+  "author": "Anlan",
   "main": "./out/main/index.js",
+  "description": "Xiaomi SU7 U盘行车记录视频管理工具",
   "scripts": {
     "start": "electron-vite preview",
     "dev": "electron-vite dev",

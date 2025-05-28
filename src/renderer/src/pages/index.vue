@@ -26,21 +26,27 @@
           :key="date"
           class="date-group"
         >
-          <div class="date-header">{{ date }}</div>
-          <div
-
-            v-for="timeGroup in videosByDate[date]" 
-            :key="timeGroup.time"
-            class="video-item"
-            :class="{ selected: selectedVideo?.time === timeGroup.time && selectedVideo?.date === date }"
-            @click="selectVideo(date, timeGroup)"
-          >
-            <div class="video-time">{{ timeGroup.time }}</div>
-            <div class="video-info">
-              <span class="duration">{{ timeGroup.duration }}分钟</span>
-              <span class="angles">{{ timeGroup.angles.length }}个视角</span>
-            </div>
+          <div class="date-header" @click="toggleDateGroup(date)">
+            {{ date }}
+            <span class="toggle-icon">{{ expandedDates[date] ? '▼' : '▶' }}</span>
           </div>
+          <transition name="collapse">
+            <div v-show="expandedDates[date]" class="date-content">
+              <div
+                v-for="timeGroup in videosByDate[date]" 
+                :key="timeGroup.time"
+                class="video-item"
+                :class="{ selected: selectedVideo?.time === timeGroup.time && selectedVideo?.date === date }"
+                @click="selectVideo(date, timeGroup)"
+              >
+                <div class="video-time">{{ timeGroup.time }}</div>
+                <div class="video-info">
+                  <span class="duration">{{ timeGroup.duration }}分钟</span>
+                  <span class="angles">{{ timeGroup.angles.length }}个视角</span>
+                </div>
+              </div>
+            </div>
+          </transition>
         </div>
       </div>
     </div>
@@ -110,6 +116,14 @@ const videosByDate = reactive({})
 const selectedVideo = ref(null)
 const currentTime = ref(0)
 const totalDuration = ref(0)
+
+// 添加折叠面板状态
+const expandedDates = reactive({})
+
+// 切换日期组的展开/折叠状态
+const toggleDateGroup = (date) => {
+  expandedDates[date] = !expandedDates[date]
+}
 
 // 视频引用
 const frontVideo = ref(null)
@@ -215,7 +229,13 @@ const loadVideos = async () => {
     
   } catch (error) {
     console.error('加载视频失败:', error)
+  }finally {
+    if (sortedDates.value.length > 0) {
+      // 默认展开第一个日期组
+      expandedDates[sortedDates.value[0]] = true;
+    }
   }
+
 }
 
 // 添加重新选择路径的方法
@@ -352,6 +372,33 @@ onMounted(() => {
   padding: 0.5rem;
   background: #333;
   border-radius: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-icon {
+  font-size: 0.75rem;
+}
+
+.date-content {
+  overflow: hidden;
+}
+
+/* 折叠动画 */
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: all 0.3s ease;
+  max-height: 1000px; /* 足够大的高度以容纳内容 */
+  overflow: hidden;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
 }
 
 .video-item {

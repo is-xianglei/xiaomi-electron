@@ -27,7 +27,8 @@
           class="date-group"
         >
           <div class="date-header">{{ date }}</div>
-          <div 
+          <div
+
             v-for="timeGroup in videosByDate[date]" 
             :key="timeGroup.time"
             class="video-item"
@@ -118,10 +119,10 @@ const rightVideo = ref(null)
 
 // 当前播放的视频路径
 const currentVideos = reactive({
-  front: '',
+  front: 'file:///Users/xianglei/Movies/MiCam/RecentClips/2024-10-22_08-29-43_Front.mp4',
   back: '',
   left: '',
-  right: ''
+  right: 'file:///Users/xianglei/Movies/MiCam/RecentClips/2024-10-22_08-32-56_RightBack.mp4'
 })
 
 // 计算属性
@@ -132,7 +133,7 @@ const sortedDates = computed(() => {
 // 方法
 const switchTab = async (tab) => {
   currentTab.value = tab
-  await loadVideos()
+  //await loadVideos()
 }
 
 // 在 script setup 部分添加
@@ -142,68 +143,70 @@ const isPathSelected = ref(false)
 // 修改 loadVideos 方法
 const loadVideos = async () => {
   try {
-    console.log(window)
-    basePath.value = 'C:\\Users\\Anlan\\Desktop\\MiCam'
     // 如果还没有选择路径，先让用户选择
-    // if (!isPathSelected.value) {
-    //   const result = await window.api.selectFolder()
-    //   if (result.success) {
-    //     basePath.value = result.path
-    //     isPathSelected.value = true
-    //   } else {
-    //     console.error('选择文件夹失败:', result.error)
-    //     alert(result.error || '选择文件夹失败')
-    //     return
-    //   }
-    // }
-    
-    const folderPath = currentTab.value === 'recent' 
-      ? `${basePath.value}\\RecentClips`
-      : `${basePath.value}\\SavedClips`
-    
+    if (!isPathSelected.value) {
+      const result = await window.api.selectFolder()
+      if (result.success) {
+        basePath.value = result.path
+        isPathSelected.value = true
+      } else {
+        console.error('选择文件夹失败:', result.error)
+        alert(result.error || '选择文件夹失败')
+        return
+      }
+    }
+    const folderPath = currentTab.value === 'recent'
+      ? `${basePath.value}${await window.api.pathSeparator()}RecentClips`
+      : `${basePath.value}${await window.api.pathSeparator()}SavedClips`
+
     // 通过 Electron 的 IPC 获取文件列表和完整路径
     const result = await window.api.getVideoFiles(folderPath)
-    console.log(result)
-    
+
     // 清空现有数据
     Object.keys(videosByDate).forEach(key => delete videosByDate[key])
     
     // 解析文件名并按日期分组
     const videoGroups = {}
-    
-    result.files.forEach(fileInfo => {
+
+    for (let index in result.files){
+      let fileInfo = result.files[index];
       const match = fileInfo.name.match(/(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})_(\w+)\.mp4$/)
-      if (match) {
-        const [, date, time, angle] = match
-        const key = `${date}`
-        console.log('key:',key)
-        if (!videoGroups[key]) {
-          videoGroups[key] = {
-            date,
-            time,
-            angles: {},
-            files: []
-          }
-        }
-        
-        videoGroups[key].angles[angle.toLowerCase()] = fileInfo.fullPath
-        videoGroups[key].files.push(fileInfo.name)
+      if (match === false){
+        continue;
       }
-    })
-    
+      const [, date, time, angle] = match
+      const key = `${date}`
+      // 如果不存在则添加到组
+      if (!videoGroups[key]) {
+        videoGroups[key] = {
+          date,
+          time,
+          angles: {},
+          files: []
+        }
+      }
+
+      videoGroups[key].angles[angle.toLowerCase()] = fileInfo.fullPath
+      videoGroups[key].files.push(fileInfo.name)
+
+    }
+
+    debugger;
     // 按日期组织数据
     Object.values(videoGroups).forEach(group => {
-      if (!videosByDate[group.date]) {
-        videosByDate[group.date] = []
+      const key = `${group.date}_${group.time}`
+      if (!videosByDate[key]) {
+        videosByDate[key] = []
       }
       
-      videosByDate[group.date].push({
+      videosByDate[key].push({
         time: group.time,
         duration: 1, // 假设每个片段1分钟
         angles: Object.keys(group.angles),
         paths: group.angles
       })
     })
+
     
     // 对每个日期的视频按时间排序
     Object.keys(videosByDate).forEach(date => {
@@ -287,7 +290,7 @@ const formatTime = (seconds) => {
 
 // 生命周期
 onMounted(() => {
-  loadVideos()
+  //loadVideos()
 })
 </script>
 
@@ -295,12 +298,12 @@ onMounted(() => {
 .video-manager {
   display: flex;
   height: 100vh;
+  width: 100vw;
   background: #1a1a1a;
   color: white;
 }
 
 .left-panel {
-  width: 300px;
   border-right: 1px solid #333;
   display: flex;
   flex-direction: column;
@@ -308,17 +311,17 @@ onMounted(() => {
 
 .controls {
   display: flex;
-  padding: 10px;
-  gap: 10px;
+  padding: 0.625rem;
+  gap: 0.625rem;
 }
 
 .controls button {
   flex: 1;
-  padding: 8px 16px;
-  border: 1px solid #555;
+  padding: 0.5rem 1rem;
+  border: 0.0625rem solid #555;
   background: #2a2a2a;
   color: white;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -335,27 +338,27 @@ onMounted(() => {
 .video-list {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 0.625rem;
 }
 
 .date-group {
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .date-header {
   font-weight: bold;
-  font-size: 16px;
-  margin-bottom: 10px;
-  padding: 8px;
+  font-size: 1rem;
+  margin-bottom: 0.625rem;
+  padding: 0.5rem;
   background: #333;
-  border-radius: 4px;
+  border-radius: 0.25rem;
 }
 
 .video-item {
-  padding: 10px;
-  margin-bottom: 5px;
+  padding: 0.625rem;
+  margin-bottom: 0.3125rem;
   background: #2a2a2a;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -370,13 +373,13 @@ onMounted(() => {
 
 .video-time {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 0.3125rem;
 }
 
 .video-info {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #ccc;
 }
 
@@ -384,34 +387,36 @@ onMounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 1.25rem;
 }
 
 .video-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 15px;
+  gap: 0.9375rem;
   flex: 1;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .video-container {
   position: relative;
   background: #000;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   overflow: hidden;
+  width: 37.5rem;
+  height: 23.125rem;
 }
 
 .video-label {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 0.625rem;
+  left: 0.625rem;
   background: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
   z-index: 1;
 }
 
@@ -424,18 +429,18 @@ onMounted(() => {
 .playback-controls {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 15px;
+  gap: 0.9375rem;
+  padding: 0.9375rem;
   background: #2a2a2a;
-  border-radius: 8px;
+  border-radius: 0.5rem;
 }
 
 .playback-controls button {
-  padding: 8px 16px;
+  padding: 0.5rem 1rem;
   border: none;
   background: #0066cc;
   color: white;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
   transition: background 0.2s;
 }

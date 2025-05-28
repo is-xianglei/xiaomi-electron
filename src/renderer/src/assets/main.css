@@ -12,8 +12,8 @@ body {
 
 code {
   font-weight: 600;
-  padding: 3px 5px;
-  border-radius: 2px;
+  padding: 0.1875rem 0.3125rem;
+  border-radius: 0.125rem;
   background-color: var(--color-background-mute);
   font-family:
     ui-monospace,
@@ -31,14 +31,14 @@ code {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  margin-bottom: 80px;
+  margin-bottom: 5rem;
 }
 
 .logo {
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
   -webkit-user-drag: none;
-  height: 128px;
-  width: 128px;
+  height: 8rem;
+  width: 8rem;
   will-change: filter;
   transition: filter 300ms;
 }
@@ -48,11 +48,11 @@ code {
 }
 
 .creator {
-  font-size: 14px;
-  line-height: 16px;
+  font-size: 0.875rem;
+  line-height: 1rem;
   color: var(--ev-c-text-2);
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 0.625rem;
 }
 
 .text {

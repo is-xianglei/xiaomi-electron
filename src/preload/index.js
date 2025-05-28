@@ -16,5 +16,6 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('api', {
   selectFolder: () => ipcRenderer.invoke('select-folder'),
-  getVideoFiles: (folderPath) => ipcRenderer.invoke('get-video-files', folderPath)
+  getVideoFiles: (folderPath) => ipcRenderer.invoke('get-video-files', folderPath),
+  pathSeparator: () => ipcRenderer.invoke('sep'),
 })

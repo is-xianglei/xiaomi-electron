@@ -5,14 +5,14 @@ import { readdir } from 'fs/promises'
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1600,
+    height: 910,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: true  // 确保 webSecurity 启用
+      webSecurity: false
     }
   })
 
@@ -21,6 +21,8 @@ function createWindow() {
   })
 
   ipcMain.handle('get-video-files', readFilesFromDisk)
+
+  ipcMain.handle('sep', () => path.sep)
 
   // 添加选择文件夹的 IPC 处理器
   ipcMain.handle('select-folder', async () => {
@@ -60,11 +62,6 @@ function createWindow() {
 
 // 在 app.whenReady() 中添加协议注册
 app.whenReady().then(() => {
-  // 使用新的 protocol.handle 方法注册自定义协议
-  protocol.handle('local-video', (request) => {
-    const filePath = request.url.replace('local-video://', '')
-    return net.fetch(`file://${decodeURI(filePath)}`)
-  })
 
   electronApp.setAppUserModelId('com.electron')
   createWindow()
@@ -94,7 +91,7 @@ async function readFilesFromDisk(_, folderPath) {
         .filter(file => path.extname(file).toLowerCase() === '.mp4')
         .map(file => ({
           name: file,
-          fullPath: `local-video://${path.join(folderPath, file)}`
+          fullPath: `${path.join(folderPath, file)}`
         }))
     }
   } catch (error) {

@@ -15,8 +15,8 @@
         >
           按键保存
         </button>
-        <button @click="selectNewPath" class="path-button">
-          重选路径
+        <button @click="selectNewPath" class="emergency-button">
+          紧急片段
         </button>
       </div>
       
@@ -52,7 +52,7 @@
       <div class="video-grid">
         <div class="video-container">
           <div class="video-label">前视</div>
-          <video 
+          <video autoplay
             ref="frontVideo"
             :src="currentVideos.front"
             controls
@@ -64,7 +64,7 @@
         
         <div class="video-container">
           <div class="video-label">后视</div>
-          <video 
+          <video autoplay
             ref="backVideo"
             :src="currentVideos.back"
             controls
@@ -73,7 +73,7 @@
         
         <div class="video-container">
           <div class="video-label">左视</div>
-          <video 
+          <video autoplay
             ref="leftVideo"
             :src="currentVideos.left"
             controls
@@ -82,7 +82,7 @@
         
         <div class="video-container">
           <div class="video-label">右视</div>
-          <video 
+          <video autoplay
             ref="rightVideo"
             :src="currentVideos.right"
             controls
@@ -249,9 +249,10 @@ const loadVideos = async () => {
 }
 
 // 添加重新选择路径的方法
-const selectNewPath = async () => {
-  isPathSelected.value = false
-  await loadVideos()
+const selectNewPath =  () => {
+  // isPathSelected.value = false
+  // await loadVideos()
+  alert('还在开发...')
 }
 
 const selectVideo = (date, timeGroup) => {
@@ -274,7 +275,6 @@ const selectVideo = (date, timeGroup) => {
 const syncVideos = (event) => {
   const masterTime = event.target.currentTime
   currentTime.value = masterTime
-  
   // 同步其他视频的播放时间
   const videos = [backVideo.value, leftVideo.value, rightVideo.value]
   videos.forEach(video => {
@@ -509,5 +509,20 @@ onMounted(() => {
   margin-left: auto;
   font-family: monospace;
   color: #ccc;
+}
+
+.emergency-button {
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: red;
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+
+  &:hover {
+    background-color: #cccccc;
+    border-color: #cccccc;
+    box-shadow: none;
+  }
 }
 </style>

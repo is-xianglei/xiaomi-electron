@@ -21,11 +21,7 @@
       </div>
       
       <div class="video-list">
-        <div 
-          v-for="date in sortedDates" 
-          :key="date"
-          class="date-group"
-        >
+        <div v-for="date in sortedDates" :key="date" class="date-group">
           <div class="date-header" @click="toggleDateGroup(date)">
             {{ formatDate(date) }}
             <span class="toggle-icon">{{ expandedDates[date] ? '▼' : '▶' }}</span>
@@ -102,6 +98,7 @@
         <div class="time-display">
           当前时间: {{ formatTime(currentTime) }} / {{ formatTime(totalDuration) }}
         </div>
+
       </div>
     </div>
   </div>
@@ -109,6 +106,14 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+
+const props = defineProps({
+  folderPath: {
+    type: String,
+    required: true,
+    default: ''
+  }
+})
 
 // 响应式数据
 const currentTab = ref('recent')
@@ -133,18 +138,16 @@ const rightVideo = ref(null)
 
 // 当前播放的视频路径
 const currentVideos = reactive({
-  front: 'file:///Users/xianglei/Movies/MiCam/RecentClips/2024-10-22_08-29-43_Front.mp4',
+  front: '',
   back: '',
   left: '',
-  right: 'file:///Users/xianglei/Movies/MiCam/RecentClips/2024-10-22_08-32-56_RightBack.mp4'
+  right: ''
 })
 
-// 计算属性
 const sortedDates = computed(() => {
   return Object.keys(videosByDate).sort((a, b) => new Date(b) - new Date(a))
 })
 
-// 方法
 const formatDate = (str) => {
   const [datePart] = str.split('_');
   const [year, month, day] = datePart.split('-');
@@ -158,31 +161,28 @@ const formatTimeStr = (str) => {
 
 const switchTab = async (tab) => {
   currentTab.value = tab
-  //await loadVideos()
+  await loadVideos()
 }
 
-// 在 script setup 部分添加
-const basePath = ref('')
 const isPathSelected = ref(false)
 
-// 修改 loadVideos 方法
 const loadVideos = async () => {
   try {
-    // 如果还没有选择路径，先让用户选择
-    if (!isPathSelected.value) {
-      const result = await window.api.selectFolder()
-      if (result.success) {
-        basePath.value = result.path
-        isPathSelected.value = true
-      } else {
-        console.error('选择文件夹失败:', result.error)
-        alert(result.error || '选择文件夹失败')
-        return
-      }
+
+    let folderPath = ''
+
+    if (currentTab.value === 'saved') {
+      folderPath = `${props.folderPath}SavedClips`
     }
-    const folderPath = currentTab.value === 'recent'
-      ? `${basePath.value}${await window.api.pathSeparator()}RecentClips`
-      : `${basePath.value}${await window.api.pathSeparator()}SavedClips`
+
+    if (currentTab.value === 'recent') {
+      folderPath = `${props.folderPath}RecentClips`
+    }
+
+    if (folderPath === '') {
+      alert('不正确的文件路径:' + folderPath)
+      return;
+    }
 
     // 通过 Electron 的 IPC 获取文件列表和完整路径
     const result = await window.api.getVideoFiles(folderPath)
@@ -216,7 +216,6 @@ const loadVideos = async () => {
 
     }
 
-    debugger;
     // 按日期组织数据
     Object.values(videoGroups).forEach(group => {
       const key = `${group.date}_${group.time}`
@@ -240,7 +239,7 @@ const loadVideos = async () => {
     
   } catch (error) {
     console.error('加载视频失败:', error)
-  }finally {
+  } finally {
     if (sortedDates.value.length > 0) {
       // 默认展开第一个日期组
       expandedDates[sortedDates.value[0]] = true;
@@ -257,7 +256,6 @@ const selectNewPath = async () => {
 
 const selectVideo = (date, timeGroup) => {
   selectedVideo.value = { date, ...timeGroup }
-  debugger;
   // 设置当前视频路径
   currentVideos.front = "file://" + timeGroup.paths.front || ''
   currentVideos.back = "file://" + timeGroup.paths.back || ''
@@ -321,7 +319,7 @@ const formatTime = (seconds) => {
 
 // 生命周期
 onMounted(() => {
-  //loadVideos()
+  loadVideos()
 })
 </script>
 

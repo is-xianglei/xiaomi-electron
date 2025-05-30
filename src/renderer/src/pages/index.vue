@@ -36,7 +36,10 @@
                 :class="{ selected: selectedVideo?.time === timeGroup.time && selectedVideo?.date === date }"
                 @click="selectVideo(date, timeGroup)"
               >
-                <div class="video-time">{{ formatTimeStr(timeGroup.time) }}</div>
+                <div class="video-item-title">
+                  <div class="video-time">{{ formatTimeStr(timeGroup.time) }}</div>
+                  <button class="export-btn">导出</button>
+                </div>
                 <div class="video-info">
 <!--                  <span class="duration">{{ timeGroup.duration }}分钟</span>-->
                   <span class="duration">1 分钟</span>
@@ -572,6 +575,12 @@ onMounted(() => {
   transition: all 0.2s;
 }
 
+.video-item-title{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 .video-item:hover {
   background: #3a3a3a;
 }
@@ -615,6 +624,17 @@ onMounted(() => {
   overflow: hidden;
   width: 37.5rem;
   height: 23.125rem;
+}
+
+.export-btn {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  z-index: 1;
+  font-size: 0.625rem;
+  width: 2.625rem;
+  height: 1.5625rem;
 }
 
 .video-label {

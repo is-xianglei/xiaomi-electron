@@ -59,6 +59,12 @@
             @timeupdate="syncVideos"
             @play="playAllVideos"
             @pause="pauseAllVideos"
+            @ended="handleVideoEnded"
+          ></video>
+          <video
+            ref="preloadFrontVideo"
+            :src="preloadVideos.front"
+            style="display: none"
           ></video>
         </div>
         
@@ -69,6 +75,11 @@
             :src="currentVideos.back"
             controls
           ></video>
+          <video
+            ref="preloadBackVideo"
+            :src="preloadVideos.back"
+            style="display: none"
+          ></video>
         </div>
         
         <div class="video-container">
@@ -78,6 +89,11 @@
             :src="currentVideos.left"
             controls
           ></video>
+          <video
+            ref="preloadLeftVideo"
+            :src="preloadVideos.left"
+            style="display: none"
+          ></video>
         </div>
         
         <div class="video-container">
@@ -86,6 +102,11 @@
             ref="rightVideo"
             :src="currentVideos.right"
             controls
+          ></video>
+          <video
+            ref="preloadRightVideo"
+            :src="preloadVideos.right"
+            style="display: none"
           ></video>
         </div>
       </div>
@@ -143,6 +164,23 @@ const currentVideos = reactive({
   left: '',
   right: ''
 })
+
+// 添加预加载视频
+const preloadVideos = reactive({
+  front: '',
+  back: '',
+  left: '',
+  right: ''
+})
+
+// 添加预加载视频元素
+const preloadFrontVideo = ref(null)
+const preloadBackVideo = ref(null)
+const preloadLeftVideo = ref(null)
+const preloadRightVideo = ref(null)
+
+// 添加是否正在切换视频的标志
+const isSwitching = ref(false)
 
 const sortedDates = computed(() => {
   return Object.keys(videosByDate).sort((a, b) => new Date(b) - new Date(a))
@@ -250,19 +288,107 @@ const selectNewPath =  () => {
 
 const selectVideo = (date, timeGroup) => {
   selectedVideo.value = { date, ...timeGroup }
-  // 设置当前视频路径
-  currentVideos.front = "file://" + timeGroup.angles.front || ''
-  currentVideos.back = "file://" + timeGroup.angles.back || ''
-  currentVideos.left = "file://" + timeGroup.angles.leftback || ''
-  currentVideos.right = "file://" + timeGroup.angles.rightback || ''
+  
+  // 如果正在切换视频，则不执行新的切换
+  if (isSwitching.value) return
+  
+  // 设置预加载视频路径
+  preloadVideos.front = "file://" + timeGroup.angles.front || ''
+  preloadVideos.back = "file://" + timeGroup.angles.back || ''
+  preloadVideos.left = "file://" + timeGroup.angles.leftback || ''
+  preloadVideos.right = "file://" + timeGroup.angles.rightback || ''
+  
+  // 预加载视频
+  nextTick(() => {
+    if (preloadFrontVideo.value) {
+      preloadFrontVideo.value.load()
+      preloadBackVideo.value.load()
+      preloadLeftVideo.value.load()
+      preloadRightVideo.value.load()
+      
+      // 监听预加载视频的加载完成事件
+      const videos = [preloadFrontVideo.value, preloadBackVideo.value, preloadLeftVideo.value, preloadRightVideo.value]
+      let loadedCount = 0
+      
+      const onLoaded = () => {
+        loadedCount++
+        if (loadedCount === videos.length) {
+          // 所有视频都加载完成后，进行切换
+          switchVideos()
+        }
+      }
+      
+      videos.forEach(video => {
+        if (video) {
+          video.addEventListener('loadeddata', onLoaded, { once: true })
+        }
+      })
+    }
+  })
+}
+
+// 添加视频切换函数
+const switchVideos = () => {
+  isSwitching.value = true
+  
+  // 交换当前视频和预加载视频
+  const temp = { ...currentVideos }
+  Object.assign(currentVideos, preloadVideos)
+  Object.assign(preloadVideos, temp)
   
   // 重置播放时间
   nextTick(() => {
     if (frontVideo.value) {
       frontVideo.value.currentTime = 0
       totalDuration.value = frontVideo.value.duration || 0
+      isSwitching.value = false
     }
   })
+}
+
+// 获取下一个视频
+const getNextVideo = () => {
+  if (!selectedVideo.value) return null
+  
+  const currentDate = selectedVideo.value.date
+  const currentTime = selectedVideo.value.time
+  const currentDateVideos = videosByDate[currentDate]
+  
+  if (!currentDateVideos) return null
+  
+  const currentIndex = currentDateVideos.findIndex(v => v.time === currentTime)
+  if (currentIndex === -1) return null
+  
+  // 尝试获取同一天的下一个视频
+  if (currentIndex < currentDateVideos.length - 1) {
+    return {
+      date: currentDate,
+      timeGroup: currentDateVideos[currentIndex + 1]
+    }
+  }
+  
+  // 如果当前是最后一个视频，尝试获取下一天的第一个视频
+  const currentDateIndex = sortedDates.value.indexOf(currentDate)
+  if (currentDateIndex < sortedDates.value.length - 1) {
+    const nextDate = sortedDates.value[currentDateIndex + 1]
+    const nextDateVideos = videosByDate[nextDate]
+    if (nextDateVideos && nextDateVideos.length > 0) {
+      return {
+        date: nextDate,
+        timeGroup: nextDateVideos[0]
+      }
+    }
+  }
+  
+  return null
+}
+
+// 添加视频结束事件处理
+const handleVideoEnded = () => {
+  const nextVideo = getNextVideo()
+  if (nextVideo) {
+    selectVideo(nextVideo.date, nextVideo.timeGroup)
+  }
 }
 
 const syncVideos = (event) => {

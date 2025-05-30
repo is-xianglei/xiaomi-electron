@@ -279,10 +279,16 @@ const loadVideos = async () => {
   } finally {
     if (sortedDates.value.length > 0) {
       // 默认展开第一个日期组
-      expandedDates[sortedDates.value[0]] = true;
+      const firstDate = sortedDates.value[0]
+      expandedDates[firstDate] = true
+      
+      // 自动选中第一个视频
+      const firstDateVideos = videosByDate[firstDate]
+      if (firstDateVideos && firstDateVideos.length > 0) {
+        selectVideo(firstDate, firstDateVideos[0])
+      }
     }
   }
-
 }
 
 // 添加重新选择路径的方法

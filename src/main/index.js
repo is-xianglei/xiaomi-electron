@@ -3,6 +3,12 @@ import path from 'path'
 import { electronApp, is } from '@electron-toolkit/utils'
 import { readdir } from 'fs/promises'
 import fs from "fs";
+import { autoUpdater } from 'electron-updater'
+import log from 'electron-log'
+
+// 配置日志
+log.transports.file.level = 'info'
+autoUpdater.logger = log
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -17,6 +23,9 @@ function createWindow() {
       sandbox: false
     }
   })
+
+  // 检查更新
+  checkForUpdates(mainWindow)
 
   ipcMain.handle('get-video-files', readFilesFromDisk)
 
@@ -66,7 +75,48 @@ function createWindow() {
   // }
 }
 
+// 添加检查更新函数
+function checkForUpdates(mainWindow) {
+  // 检查更新出错
+  autoUpdater.on('error', (err) => {
+    log.error('更新检查失败:', err)
+  })
 
+  // 检查到新版本
+  autoUpdater.on('update-available', (info) => {
+    log.info('发现新版本:', info)
+    mainWindow.webContents.send('update-available', info)
+  })
+
+  // 没有新版本
+  autoUpdater.on('update-not-available', (info) => {
+    log.info('当前已是最新版本:', info)
+  })
+
+  // 更新下载进度
+  autoUpdater.on('download-progress', (progressObj) => {
+    log.info('下载进度:', progressObj)
+    mainWindow.webContents.send('download-progress', progressObj)
+  })
+
+  // 更新下载完成
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('更新下载完成:', info)
+    mainWindow.webContents.send('update-downloaded', info)
+  })
+
+  // 执行自动更新检查
+  autoUpdater.checkForUpdates()
+}
+
+// 添加更新相关的 IPC 处理程序
+ipcMain.handle('check-for-updates', () => {
+  autoUpdater.checkForUpdates()
+})
+
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall()
+})
 
 // 在 app.whenReady() 中添加协议注册
 app.whenReady().then(() => {

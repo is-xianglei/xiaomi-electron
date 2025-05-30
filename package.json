@@ -16,7 +16,8 @@
     "@electron-toolkit/utils": "^4.0.0",
     "electron-log": "^5.4.0",
     "electron-updater": "^6.6.2",
-    "postcss-pxtorem": "^6.1.0"
+    "postcss-pxtorem": "^6.1.0",
+    "vue": "^3.5.13"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
@@ -24,8 +25,7 @@
     "electron-builder": "^25.1.8",
     "electron-vite": "^3.1.0",
     "prettier": "^3.5.3",
-    "vite": "^6.2.6",
-    "vue": "^3.5.13"
+    "vite": "^6.2.6"
   },
   "build": {
     "appId": "com.anlan.driving-video",
@@ -64,7 +64,24 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Xiaomi SU7 Video Manager",
+      "uninstallDisplayName": "Xiaomi SU7 Video Manager",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "installerHeaderIcon": "resources/icon.ico",
+      "menuCategory": true,
+      "displayLanguageSelector": false,
+      "allowElevation": true,
+      "runAfterFinish": false,
+      "differentialPackage": false,
+      "removeDefaultUninstallWelcomePage": true,
+      "include": "build/installer.nsh"
     }
   }
 }

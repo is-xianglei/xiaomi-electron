@@ -200,43 +200,36 @@ const loadVideos = async () => {
         continue;
       }
       const [, date, time, angle] = match
-      const key = `${date}`
-      // 如果不存在则添加到组
-      if (!videoGroups[key]) {
-        videoGroups[key] = {
-          date,
-          time,
-          angles: {},
-          files: []
-        }
+
+      // 如果日期组不存在，则创建
+      if (!videoGroups[date]) {
+        videoGroups[date] = []
       }
 
-      videoGroups[key].angles[angle.toLowerCase()] = fileInfo.fullPath
-      videoGroups[key].files.push(fileInfo.name)
+      // 查找当前时间组是否存在
+      let timeGroup = videoGroups[date].find(group => group.time === time)
 
+      // 如果时间组不存在，则创建新的时间组
+      if (!timeGroup) {
+        timeGroup = {
+          date: date,
+          time: time,
+          angles: {}
+        }
+        videoGroups[date].push(timeGroup)
+      }
+
+      // 添加角度信息
+      timeGroup.angles[angle.toLowerCase()] = fileInfo.fullPath
     }
 
-    // 按日期组织数据
-    Object.values(videoGroups).forEach(group => {
-      const key = `${group.date}_${group.time}`
-      if (!videosByDate[key]) {
-        videosByDate[key] = []
-      }
-      
-      videosByDate[key].push({
-        time: group.time,
-        duration: 1, // 假设每个片段1分钟
-        angles: Object.keys(group.angles),
-        paths: group.angles
-      })
+    // 对每个日期的视频按时间排序
+    Object.keys(videoGroups).forEach(date => {
+      videoGroups[date].sort((a, b) => a.time.localeCompare(b.time))
     })
 
-    
-    // 对每个日期的视频按时间排序
-    Object.keys(videosByDate).forEach(date => {
-      videosByDate[date].sort((a, b) => a.time.localeCompare(b.time))
-    })
-    
+    // 将处理后的数据赋值给 videosByDate
+    Object.assign(videosByDate, videoGroups)
   } catch (error) {
     console.error('加载视频失败:', error)
   } finally {
@@ -258,10 +251,10 @@ const selectNewPath =  () => {
 const selectVideo = (date, timeGroup) => {
   selectedVideo.value = { date, ...timeGroup }
   // 设置当前视频路径
-  currentVideos.front = "file://" + timeGroup.paths.front || ''
-  currentVideos.back = "file://" + timeGroup.paths.back || ''
-  currentVideos.left = "file://" + timeGroup.paths.leftback || ''
-  currentVideos.right = "file://" + timeGroup.paths.rightback || ''
+  currentVideos.front = "file://" + timeGroup.angles.front || ''
+  currentVideos.back = "file://" + timeGroup.angles.back || ''
+  currentVideos.left = "file://" + timeGroup.angles.leftback || ''
+  currentVideos.right = "file://" + timeGroup.angles.rightback || ''
   
   // 重置播放时间
   nextTick(() => {

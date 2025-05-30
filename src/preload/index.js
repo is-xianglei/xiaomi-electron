@@ -18,4 +18,6 @@ contextBridge.exposeInMainWorld('api', {
   selectFolder: () => ipcRenderer.invoke('select-folder'),
   getVideoFiles: (folderPath) => ipcRenderer.invoke('get-video-files', folderPath),
   pathSeparator: () => ipcRenderer.invoke('sep'),
+  selectExportDirectory: () => ipcRenderer.invoke('select-export-directory'),
+  copyFiles: (files, targetDir) => ipcRenderer.invoke('copy-files', { files, targetDir })
 })

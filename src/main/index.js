@@ -24,6 +24,35 @@ function createWindow() {
 
   ipcMain.handle('select-folder', openDirectory)
 
+  ipcMain.handle('select-export-directory', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    })
+    return result
+  })
+
+  ipcMain.handle('copy-files', async (_, { files, targetDir }) => {
+    try {
+      // 确保目标目录存在
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true })
+      }
+
+      // 复制所有文件
+      const copyPromises = files.map(file => {
+        const fileName = path.basename(file)
+        const targetPath = path.join(targetDir, fileName)
+        return fs.promises.copyFile(file, targetPath)
+      })
+
+      await Promise.all(copyPromises)
+      return { success: true }
+    } catch (error) {
+      console.error('复制文件失败:', error)
+      return { success: false, error: error.message }
+    }
+  })
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })

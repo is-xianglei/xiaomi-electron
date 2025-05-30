@@ -38,7 +38,7 @@
               >
                 <div class="video-item-title">
                   <div class="video-time">{{ formatTimeStr(timeGroup.time) }}</div>
-                  <button class="export-btn">导出</button>
+                  <button class="export-btn" @click.stop="exportVideos(date, timeGroup)">导出</button>
                 </div>
                 <div class="video-info">
 <!--                  <span class="duration">{{ timeGroup.duration }}分钟</span>-->
@@ -465,6 +465,40 @@ const formatTotalDuration = (minutes) => {
     return `${hours}小时${mins}分钟`
   }
   return `${mins}分钟`
+}
+
+// 添加导出视频的函数
+const exportVideos = async (date, timeGroup) => {
+  try {
+    // 选择导出目录
+    const result = await window.api.selectExportDirectory()
+    if (result.canceled) {
+      return
+    }
+    
+    const targetDir = result.filePaths[0]
+    
+    // 获取所有视角的视频文件路径
+    const files = Object.values(timeGroup.angles)
+      .filter(path => path) // 过滤掉空路径
+    
+    if (files.length === 0) {
+      alert('没有可导出的视频文件')
+      return
+    }
+    
+    // 复制文件
+    const copyResult = await window.api.copyFiles(files, targetDir)
+    
+    if (copyResult.success) {
+      alert('导出成功！')
+    } else {
+      alert('导出失败：' + (copyResult.error || '未知错误'))
+    }
+  } catch (error) {
+    console.error('导出失败:', error)
+    alert('导出失败：' + error.message)
+  }
 }
 
 // 生命周期

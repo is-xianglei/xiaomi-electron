@@ -22,6 +22,7 @@
       
       <div class="video-list">
         <div v-for="date in sortedDates" :key="date" class="date-group">
+          <span class="date-duration">({{ formatTotalDuration(getDateTotalDuration(date)) }})</span>
           <div class="date-header" @click="toggleDateGroup(date)">
             {{ formatDate(date) }}
             <span class="toggle-icon">{{ expandedDates[date] ? '▼' : '▶' }}</span>
@@ -37,8 +38,9 @@
               >
                 <div class="video-time">{{ formatTimeStr(timeGroup.time) }}</div>
                 <div class="video-info">
-                  <span class="duration">{{ timeGroup.duration }}分钟</span>
-                  <span class="angles">{{ timeGroup.angles.length }}个视角</span>
+<!--                  <span class="duration">{{ timeGroup.duration }}分钟</span>-->
+                  <span class="duration">1 分钟</span>
+                  <span class="angles">{{ Object.keys(timeGroup.angles).length }}个视角</span>
                 </div>
               </div>
             </div>
@@ -252,13 +254,17 @@ const loadVideos = async () => {
         timeGroup = {
           date: date,
           time: time,
-          angles: {}
+          angles: {},
+          duration: 0  // 添加时长字段
         }
         videoGroups[date].push(timeGroup)
       }
 
       // 添加角度信息
       timeGroup.angles[angle.toLowerCase()] = fileInfo.fullPath
+      
+      // 更新时长（这里假设每个视频片段是1分钟）
+      timeGroup.duration = 1
     }
 
     // 对每个日期的视频按时间排序
@@ -436,6 +442,22 @@ const formatTime = (seconds) => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
+// 添加计算日期总时长的函数
+const getDateTotalDuration = (date) => {
+  const videos = videosByDate[date] || []
+  return videos.reduce((total, video) => total + (video.duration || 0), 0)
+}
+
+// 添加格式化总时长的函数
+const formatTotalDuration = (minutes) => {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours > 0) {
+    return `${hours}小时${mins}分钟`
+  }
+  return `${mins}分钟`
+}
+
 // 生命周期
 onMounted(() => {
   loadVideos()
@@ -506,6 +528,12 @@ onMounted(() => {
   align-items: center;
 }
 
+.date-duration {
+  font-size: 1rem;
+  color: #ccc;
+  margin: 0 0.5rem;
+}
+
 .toggle-icon {
   font-size: 0.75rem;
 }
@@ -569,9 +597,9 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 0.9375rem;
+  gap: 0.3125rem;
   flex: 1;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.3125rem;
 }
 
 .video-container {

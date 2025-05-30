@@ -7,7 +7,7 @@ import fs from "fs";
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1600,
-    height: 1000,
+    height: 950,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),

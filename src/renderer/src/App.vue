@@ -36,7 +36,9 @@ const selectDisk = async () => {
       basePath.value = result.path
       isPathSelected.value = true
     } else {
-      //alert(result.error || '选择文件夹失败')
+      if (result.error !== '用户取消选择') {
+        alert(result.error || '选择文件夹失败')
+      }
       return;
     }
   }
